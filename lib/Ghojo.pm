@@ -293,11 +293,15 @@ C<logging_conf()>.
 =cut
 
 sub setup_logging ( $self, $conf = __PACKAGE__->logging_conf ) {
-	require Log::Log4perl;
-
 	$self->{logger} = do {
 		if( eval "require Log::Log4perl; 1" ) {
+			require Ghojo::FilterSecret;
 			Log::Log4perl::init( $conf );
+			foreach my $name(keys %Log::Log4perl::Logger::APPENDER_BY_NAME){
+				$Log::Log4perl::Logger::APPENDER_BY_NAME{$name}->filter(
+					Ghojo::FilterSecret->new()
+				);
+			}
 			Log::Log4perl->get_logger;
 			}
 		else {

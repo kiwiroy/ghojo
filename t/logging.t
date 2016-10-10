@@ -6,14 +6,13 @@ use Mojo::Loader qw{data_section};
 
 sub logging_conf {
   return \ data_section( 'main', 'subclass.conf' );
-};
+}
 
 package main;
 
 use Test::More 0.95;
-use Data::Dumper;
 use Mojo::Loader qw{data_section};
-use Mojo::Util qw{spurt};
+use Mojo::Util qw{slurp spurt};
 use Ghojo;
 
 my $ghojo;
@@ -36,6 +35,15 @@ ok(-e 't/file.log', 'logfile created');
 ## use a subclassed, redefined logging_conf()
 $ghojo = Test::Ghojo::Log->new();
 ok(-e 't/subclass.log', 'logfile created');
+
+## test filtering
+$ghojo->logger->info('filter-this <1e433ebaede85262a6d1d7118eb667c2288a0b88>');
+my $log_content = slurp 't/subclass.log';
+ok(
+  1 == grep({/filter-this <\*+ masked github access token \*+>/} split /\n/,
+    $log_content),
+  'filtered secret'
+);
 
 done_testing();
 
